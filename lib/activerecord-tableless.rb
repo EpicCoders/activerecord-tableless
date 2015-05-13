@@ -89,9 +89,8 @@ module ActiveRecord
       if ActiveRecord::VERSION::STRING >= "4.2.0"
         # This stopped working in Rails 4.2.0.betaX.  This hopefully fixes it.
         def column(name, sql_type = nil, default = nil, null = true)
-          # from https://github.com/activescaffold/active_scaffold/blob/master/lib/active_scaffold/tableless.rb
-          cast_type = ActiveRecord::Base.connection.send :lookup_cast_type, sql_type
-          tableless_options[:columns] << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, cast_type, sql_type.to_s, null)
+          type = "ActiveRecord::Type::#{sql_type.to_s.camelize}".constantize.new
+          tableless_options[:columns] << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, type, null)
         end
       else
         def column(name, sql_type = nil, default = nil, null = true)
@@ -242,12 +241,6 @@ module ActiveRecord
           else
             Integer(limit)
           end
-        end
-
-        # This is used in the StatementCache object. It returns an object that
-        # can be used to query the database repeatedly.
-        def conn.cacheable_query(arel) # :nodoc:
-          ActiveRecord::StatementCache.partial_query visitor, arel.ast, collector
         end
         conn
       end
