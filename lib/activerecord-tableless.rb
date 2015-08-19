@@ -37,7 +37,6 @@ module ActiveRecord
     end
 
     module ActsMethods #:nodoc:
-
       # A model that needs to be tableless will call this method to indicate
       # it.
       def has_no_table(options = {:database => :fail_fast})
@@ -208,9 +207,13 @@ module ActiveRecord
       end
 
       def connection
+
         conn = Object.new()
         def conn.quote_table_name(*args)
           ""
+        end
+        def conn.prepared_statements
+          nil
         end
         def conn.substitute_at(*args)
           nil
@@ -242,6 +245,7 @@ module ActiveRecord
             Integer(limit)
           end
         end
+
         conn
       end
 
